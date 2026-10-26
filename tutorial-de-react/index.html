@@ -229,6 +229,8 @@ body[data-mode="doc"] #doc{display:block}
   </div>
   
   <button class="btn" id="toggle-all" title="Expandir o colapsar todos los paneles">Expandir todo</button>
+  <button class="btn" id="dd-add" title="Seleccione un texto de la guía y pulse aquí para guardar una duda">➕ Agregar duda</button>
+  <button class="btn" id="dd-open" title="Ver y descargar mis dudas">📝 Mis dudas<span class="dd-count" id="dd-count">0</span></button>
   <button class="btn" id="theme" title="Cambiar tema">Tema</button>
 </header>
 <div class="progress"><i id="bar"></i></div>
@@ -5195,5 +5197,262 @@ Arquitectura tomada de `react-training`: **servicios** (infraestructura) → **h
   }
 })();
 </script>
+<style>
+/* ===== Dudas: notas sobre el texto seleccionado ===== */
+.dd-float{position:absolute;z-index:60;display:none;border:0;border-radius:999px;padding:.45rem .85rem;font:700 .8rem system-ui;color:#fff;background:var(--grad);box-shadow:0 8px 22px -8px var(--accent);cursor:pointer}
+.dd-float.on{display:block}
+.dd-count{display:inline-block;min-width:1.35em;padding:0 .35em;margin-left:.3em;border-radius:999px;background:var(--accent);color:#fff;font-size:.72rem;line-height:1.35em;text-align:center}
+.dd-back{position:fixed;inset:0;z-index:80;display:none;background:rgba(10,12,30,.45);align-items:center;justify-content:center;padding:16px}
+.dd-back.on{display:flex}
+.dd-modal{width:min(560px,100%);max-height:90vh;overflow:auto;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 30px 70px -20px rgba(0,0,0,.5)}
+.dd-modal h3{margin:0 0 .6rem;font-size:1.05rem}
+.dd-quote{margin:.4rem 0 .8rem;padding:.6rem .8rem;border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:0 10px 10px 0;font-size:.9rem;max-height:9em;overflow:auto;white-space:pre-wrap;word-break:break-word}
+.dd-where{font-size:.8rem;color:var(--muted);margin:0 0 .7rem}
+.dd-modal label{display:block;font:700 .8rem system-ui;margin:.6rem 0 .25rem}
+.dd-modal textarea,.dd-modal input[type=text]{width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:10px;padding:.55rem .7rem;font:.92rem system-ui}
+.dd-modal textarea{min-height:90px;resize:vertical}
+.dd-chips{display:flex;flex-wrap:wrap;gap:.4rem;margin:.2rem 0 .3rem}
+.dd-chips button{border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:999px;padding:.25rem .65rem;font:600 .76rem system-ui;cursor:pointer}
+.dd-chips button:hover{border-color:var(--accent);color:var(--accent)}
+.dd-actions{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:flex-end;margin-top:.9rem}
+.dd-drawer{position:fixed;top:0;right:0;bottom:0;z-index:70;width:min(430px,100%);display:none;flex-direction:column;background:var(--surface);color:var(--text);border-left:1px solid var(--line);box-shadow:-20px 0 50px -25px rgba(0,0,0,.45)}
+.dd-drawer.on{display:flex}
+.dd-head{display:flex;align-items:center;gap:.6rem;padding:14px 16px;border-bottom:1px solid var(--line)}
+.dd-head h3{margin:0;flex:1;font-size:1rem}
+.dd-body{flex:1;overflow:auto;padding:12px 16px}
+.dd-item{border:1px solid var(--line);background:var(--surface-2);border-radius:12px;padding:.7rem .8rem;margin-bottom:.7rem}
+.dd-item .q{font-size:.84rem;color:var(--muted);border-left:3px solid var(--accent);padding-left:.55rem;margin:.3rem 0;white-space:pre-wrap;word-break:break-word;max-height:6em;overflow:auto}
+.dd-item .n{font-size:.92rem;margin:.3rem 0;white-space:pre-wrap}
+.dd-item .s{font-size:.76rem;margin:0}
+.dd-item .row{display:flex;gap:.8rem;margin-top:.3rem}
+.dd-item .row button{border:0;background:none;color:var(--accent);font:600 .78rem system-ui;cursor:pointer;padding:0}
+.dd-foot{padding:12px 16px;border-top:1px solid var(--line);display:grid;gap:.5rem}
+.dd-empty{color:var(--muted);font-size:.9rem}
+.dd-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:90;background:var(--text);color:var(--surface);padding:.55rem 1rem;border-radius:999px;font:600 .84rem system-ui;display:none}
+.dd-toast.on{display:block}
+@media print{.dd-float,.dd-back,.dd-drawer,.dd-toast{display:none!important}}
+</style>
+
+<button type="button" class="dd-float" id="dd-float" aria-label="Agregar duda sobre el texto seleccionado">➕ Agregar duda</button>
+
+<div class="dd-back" id="dd-back">
+  <div class="dd-modal" role="dialog" aria-modal="true" aria-labelledby="dd-title">
+    <h3 id="dd-title">Agregar una duda</h3>
+    <p class="dd-where" id="dd-where"></p>
+    <div class="dd-quote" id="dd-quote"></div>
+    <label for="dd-note">Mi duda o nota</label>
+    <div class="dd-chips" id="dd-chips" aria-label="Notas rápidas">
+      <button type="button">No entiendo esta sintaxis</button>
+      <button type="button">¿Por qué se hace así?</button>
+      <button type="button">Necesito otro ejemplo</button>
+      <button type="button">¿Cómo se haría en Angular?</button>
+      <button type="button">¿Cuándo se usa esto?</button>
+    </div>
+    <textarea id="dd-note" placeholder="Ej.: no entiendo la sintaxis de desestructuración de un parámetro"></textarea>
+    <div class="dd-actions">
+      <button type="button" class="btn" id="dd-cancel">Cancelar</button>
+      <button type="button" class="btn primary" id="dd-save">Guardar duda</button>
+    </div>
+  </div>
+</div>
+
+<aside class="dd-drawer" id="dd-drawer" aria-label="Mis dudas">
+  <div class="dd-head"><h3>📝 Mis dudas <span class="dd-count" id="dd-count2">0</span></h3><button type="button" class="btn" id="dd-close">Cerrar</button></div>
+  <div class="dd-body" id="dd-list"></div>
+  <div class="dd-foot">
+    <label for="dd-name" style="font:700 .8rem system-ui">Su nombre (opcional, se incluye en el archivo)</label>
+    <input type="text" id="dd-name" style="border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:10px;padding:.5rem .7rem;font:.9rem system-ui">
+    <button type="button" class="btn primary" id="dd-download">⬇ Descargar mis dudas (.md)</button>
+    <button type="button" class="btn" id="dd-clear">Borrar todas</button>
+  </div>
+</aside>
+<div class="dd-toast" id="dd-toast" role="status"></div>
+
+<script>
+(function(){
+  var KEY = 'lab2-dudas', NAME_KEY = 'lab2-dudas-nombre';
+  var mem = null;
+  var $ = function(s){ return document.querySelector(s); };
+  function load(){
+    if (mem) return mem;
+    try { mem = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e){ mem = []; }
+    if (!Array.isArray(mem)) mem = [];
+    return mem;
+  }
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(mem)); } catch(e){} }
+  function toast(msg){ var t = $('#dd-toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(function(){ t.classList.remove('on'); }, 2400); }
+
+  var floatBtn = $('#dd-float'), back = $('#dd-back'), drawer = $('#dd-drawer');
+  var pending = null;   // { text, id, title }
+  var editing = null;   // id de la duda en edición
+  var lastSel = null;   // última selección válida dentro del contenido
+
+  function contentRoot(node){
+    var el = node && (node.nodeType === 1 ? node : node.parentElement);
+    if (!el) return null;
+    if (el.closest('.dd-back, .dd-drawer, .dd-float, .topbar, #nav, .stepnav')) return null;
+    return el.closest('section.step, #doc');
+  }
+  function readSelection(){
+    var sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
+    var text = sel.toString().replace(/\s+\n/g, '\n').trim();
+    if (text.length < 2) return null;
+    var range = sel.getRangeAt(0);
+    var host = contentRoot(range.commonAncestorContainer) || contentRoot(range.startContainer);
+    if (!host) return null;
+    var isDoc = host.id === 'doc';
+    return {
+      text: text.slice(0, 1500),
+      id: isDoc ? 'doc' : host.getAttribute('data-id'),
+      title: isDoc ? 'Documento original' : host.getAttribute('data-title') || host.getAttribute('data-id'),
+      rect: range.getBoundingClientRect()
+    };
+  }
+  function urlFor(id){ return location.href.split('#')[0] + '#' + id; }
+
+  function updateCount(){ var n = load().length; $('#dd-count').textContent = n; $('#dd-count2').textContent = n; }
+
+  document.addEventListener('selectionchange', function(){
+    var s = readSelection();
+    if (s) lastSel = s;
+    if (!s) floatBtn.classList.remove('on');
+  });
+  function placeFloat(){
+    var s = readSelection();
+    if (!s || back.classList.contains('on')) { floatBtn.classList.remove('on'); return; }
+    lastSel = s;
+    var top = window.scrollY + s.rect.top - 42, left = window.scrollX + s.rect.left + s.rect.width / 2 - 70;
+    if (top < window.scrollY + 8) top = window.scrollY + s.rect.bottom + 8;
+    floatBtn.style.top = top + 'px';
+    floatBtn.style.left = Math.max(8, Math.min(left, window.scrollX + document.documentElement.clientWidth - 160)) + 'px';
+    floatBtn.classList.add('on');
+  }
+  document.addEventListener('mouseup', function(e){ if (e.target === floatBtn) return; setTimeout(placeFloat, 10); });
+  document.addEventListener('keyup', function(e){ if (e.shiftKey || e.key.indexOf('Arrow') === 0) setTimeout(placeFloat, 10); });
+  document.addEventListener('touchend', function(){ setTimeout(placeFloat, 400); });
+
+  function openAdd(s){
+    pending = s; editing = null;
+    $('#dd-title').textContent = 'Agregar una duda';
+    $('#dd-quote').textContent = s.text;
+    $('#dd-where').textContent = 'Sección: ' + s.title;
+    $('#dd-note').value = '';
+    $('#dd-save').textContent = 'Guardar duda';
+    back.classList.add('on'); floatBtn.classList.remove('on');
+    setTimeout(function(){ $('#dd-note').focus(); }, 30);
+  }
+  function startAdd(){
+    var s = readSelection() || lastSel;
+    if (!s) { toast('Primero seleccione el texto de la duda'); return; }
+    openAdd(s);
+  }
+  // mousedown con preventDefault para no perder la selección al pulsar el botón
+  floatBtn.addEventListener('mousedown', function(e){ e.preventDefault(); });
+  floatBtn.addEventListener('click', startAdd);
+
+  function closeModal(){ back.classList.remove('on'); pending = null; editing = null; }
+  $('#dd-cancel').addEventListener('click', closeModal);
+  back.addEventListener('mousedown', function(e){ if (e.target === back) closeModal(); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') { if (back.classList.contains('on')) closeModal(); else drawer.classList.remove('on'); }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && back.classList.contains('on')) $('#dd-save').click();
+  });
+  $('#dd-chips').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    var ta = $('#dd-note'); ta.value = ta.value ? ta.value.replace(/\s*$/, '') + ' ' + b.textContent : b.textContent; ta.focus();
+  });
+  $('#dd-save').addEventListener('click', function(){
+    var note = $('#dd-note').value.trim() || 'Duda sobre este fragmento';
+    var list = load();
+    if (editing) {
+      list.forEach(function(d){ if (d.id === editing) d.note = note; });
+    } else if (pending) {
+      list.push({ id: 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), text: pending.text, sectionId: pending.id, sectionTitle: pending.title, note: note, at: new Date().toISOString() });
+    }
+    save(); updateCount(); renderList(); closeModal();
+    var sel = window.getSelection(); if (sel) sel.removeAllRanges();
+    lastSel = null; toast('Duda guardada');
+  });
+
+  function renderList(){
+    var box = $('#dd-list'), list = load();
+    box.textContent = '';
+    if (!list.length) {
+      var p = document.createElement('p'); p.className = 'dd-empty';
+      p.textContent = 'Aún no hay dudas. Seleccione un texto de la guía y pulse «Agregar duda».';
+      box.appendChild(p); return;
+    }
+    list.forEach(function(d, i){
+      var it = document.createElement('div'); it.className = 'dd-item';
+      var s = document.createElement('p'); s.className = 's';
+      var a = document.createElement('a'); a.href = '#' + d.sectionId; a.textContent = (i + 1) + '. ' + d.sectionTitle;
+      a.addEventListener('click', function(e){
+        e.preventDefault();
+        var link = document.querySelector('#nav a[href="#' + d.sectionId + '"]');
+        if (link) link.click(); else location.hash = d.sectionId;
+        drawer.classList.remove('on');
+      });
+      s.appendChild(a);
+      var q = document.createElement('div'); q.className = 'q'; q.textContent = d.text;
+      var n = document.createElement('div'); n.className = 'n'; n.textContent = d.note;
+      var row = document.createElement('div'); row.className = 'row';
+      var ed = document.createElement('button'); ed.type = 'button'; ed.textContent = 'Editar';
+      ed.addEventListener('click', function(){
+        editing = d.id; pending = null;
+        $('#dd-title').textContent = 'Editar la duda';
+        $('#dd-quote').textContent = d.text; $('#dd-where').textContent = 'Sección: ' + d.sectionTitle;
+        $('#dd-note').value = d.note; $('#dd-save').textContent = 'Guardar cambios';
+        back.classList.add('on'); setTimeout(function(){ $('#dd-note').focus(); }, 30);
+      });
+      var del = document.createElement('button'); del.type = 'button'; del.textContent = 'Eliminar';
+      del.addEventListener('click', function(){
+        mem = load().filter(function(x){ return x.id !== d.id; }); save(); updateCount(); renderList();
+      });
+      row.appendChild(ed); row.appendChild(del);
+      it.appendChild(s); it.appendChild(q); it.appendChild(n); it.appendChild(row);
+      box.appendChild(it);
+    });
+  }
+
+  function toMarkdown(){
+    var list = load(), name = ($('#dd-name').value || '').trim();
+    var doc = document.title, base = location.href.split('#')[0];
+    var out = ['# Dudas · ' + doc, '', '- **Documento:** ' + doc, '- **Enlace:** ' + base];
+    if (name) out.push('- **Estudiante:** ' + name);
+    out.push('- **Fecha:** ' + new Date().toLocaleString('es-CR'), '- **Total de dudas:** ' + list.length, '');
+    list.forEach(function(d, i){
+      out.push('## ' + (i + 1) + '. ' + d.sectionTitle, '',
+        '- **Sección:** ' + d.sectionTitle,
+        '- **URL:** ' + base + '#' + d.sectionId,
+        '- **Texto seleccionado:**', '',
+        d.text.split('\n').map(function(l){ return '> ' + l; }).join('\n'), '',
+        '- **Mi duda:** ' + d.note.replace(/\n/g, '\n  '), '');
+    });
+    return out.join('\n');
+  }
+  $('#dd-download').addEventListener('click', function(){
+    if (!load().length) { toast('No hay dudas para descargar'); return; }
+    var blob = new Blob([toMarkdown()], { type: 'text/markdown;charset=utf-8' });
+    var url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = 'dudas-tutorial-react-' + new Date().toISOString().slice(0, 10) + '.md';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  });
+  $('#dd-clear').addEventListener('click', function(){
+    if (!load().length) return;
+    if (confirm('¿Borrar todas las dudas guardadas? Descárguelas antes si las necesita.')) { mem = []; save(); updateCount(); renderList(); }
+  });
+  $('#dd-name').addEventListener('input', function(){ try { localStorage.setItem(NAME_KEY, this.value); } catch(e){} });
+  try { $('#dd-name').value = localStorage.getItem(NAME_KEY) || ''; } catch(e){}
+
+  var addBtn = $('#dd-add'), listBtn = $('#dd-open');
+  addBtn.addEventListener('mousedown', function(e){ e.preventDefault(); });
+  addBtn.addEventListener('click', startAdd);
+  listBtn.addEventListener('click', function(){ renderList(); drawer.classList.toggle('on'); });
+  $('#dd-close').addEventListener('click', function(){ drawer.classList.remove('on'); });
+  updateCount();
+})();
+</script>
+
 </body>
 </html>

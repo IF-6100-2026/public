@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IF-6100 · Sesión B: trabajar con agentes</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css" id="theme">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Source+Sans+3:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+html, body { margin: 0; padding: 0; box-sizing: border-box; }
+*, *::before, *::after { box-sizing: inherit; }
+:root {
+  --color-bg: #faf9f7; --color-surface: #ffffff; --color-ink: #1a1916; --color-ink-light: #6b6860;
+  --color-rule: #d4cfc8; --color-accent-1: #c0392b; --color-accent-1-rgb: 192,57,43; --color-accent-2: #2c3e50;
+  --color-text: var(--color-ink); --color-text-muted: var(--color-ink-light);
+  --radius-card: 4px; --border-rule: 1px solid var(--color-rule); --border-accent: 3px solid var(--color-accent-1);
+  --transition: all 0.5s ease;
+  --font-display: 'Playfair Display', Georgia, serif; --font-body: 'Source Sans 3', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Courier New', monospace; --font-label: 'Space Mono', 'IBM Plex Mono', monospace;
+}
+.reveal-viewport { background: var(--color-bg); }
+.reveal { font-family: var(--font-body); color: var(--color-text); }
+.reveal .slides { font-family: var(--font-body); }
+.reveal .slides section { text-align: left; }
+.reveal h1, .reveal h2, .reveal h3 { font-family: var(--font-display); text-transform: none; letter-spacing: -0.01em; color: var(--color-text); }
+.reveal p, .reveal li { color: var(--color-text); }
+.reveal pre, .reveal code { font-family: var(--font-mono); }
+.reveal .progress { color: var(--color-accent-1); }
+.reveal .controls { color: var(--color-accent-1); }
+.reveal .slide-number { font-family: var(--font-label); color: var(--color-ink-light); background: transparent; font-size: 14px; }
+.reveal .slides section > .slide-layout { height: 100%; width: 100%; display: flex; flex-direction: column; position: relative; overflow: hidden; background: var(--color-bg); }
+.reveal .slides section > .slide-layout > * { position: relative; z-index: 1; }
+h2.slide-title { font-family: var(--font-display); font-size: 2.3rem; font-weight: 700; color: var(--color-text); margin: 0 0 28px 0; border-left: 4px solid var(--color-accent-1); padding-left: 18px; line-height: 1.15; }
+.reveal .fragment { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+.reveal .fragment.visible { opacity: 1; transform: none; }
+.reveal .fragment:not(.visible) { opacity: 0; transform: translateY(12px); }
+.reveal a { color: var(--color-accent-1); }
+.reveal strong { color: var(--color-ink); }
+
+.verify { display: inline-block; font: 700 0.68rem var(--font-label); letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-accent-1); border: 1px dashed var(--color-accent-1); border-radius: 999px; padding: 1px 9px; margin-left: 8px; vertical-align: middle; }
+p.foot { margin: 18px 0 0; font-size: 1.15rem; color: var(--color-text-muted); }
+p.ask { margin: auto 0 0; padding-top: 14px; border-top: var(--border-rule); font-family: var(--font-display); font-style: italic; font-size: 1.45rem; color: var(--color-accent-1); }
+
+/* HERO */
+.slide-hero { justify-content: center; align-items: center; text-align: center; padding: 60px 90px; }
+.hero-watermark { position: absolute !important; z-index: 0 !important; right: 60px; bottom: -90px; font: 900 32rem/1 var(--font-display); color: var(--color-ink); opacity: 0.06; pointer-events: none; }
+.hero-eyebrow { font: 700 0.9rem var(--font-label); text-transform: uppercase; letter-spacing: 0.2em; color: var(--color-accent-1); margin-bottom: 26px; }
+h1.hero-title { font-family: var(--font-display); font-size: clamp(3rem, 6.4vw, 5rem); font-weight: 900; line-height: 1.08; color: var(--color-text); max-width: 20ch; margin: 0 auto 24px; text-align: center; }
+.hero-subtitle { font-size: 1.5rem; color: var(--color-text-muted); max-width: 46ch; margin: 0 auto 28px; text-align: center; line-height: 1.4; }
+.hero-ask { font-family: var(--font-display); font-style: italic; font-size: 1.9rem; color: var(--color-accent-1); max-width: 30ch; margin: 8px auto 0; text-align: center; }
+.hero-meta { font: 0.9rem var(--font-label); color: var(--color-text-muted); margin-top: 28px; text-align: center; }
+
+/* STACK */
+.slide-stack { padding: 44px 80px 36px; }
+.reveal ul.stack-list { list-style: none; display: flex; flex-direction: column; gap: 16px; padding: 0; margin: 0; }
+.stack-list li { font-size: 1.45rem; line-height: 1.38; color: var(--color-text); padding: 14px 24px 14px 52px; background: var(--color-surface); border-radius: var(--radius-card); border: var(--border-rule); position: relative; margin: 0; }
+.stack-list li::before { content: '→'; color: var(--color-accent-1); font-weight: 700; position: absolute; left: 20px; top: 14px; }
+.stack-list--large li { font-size: 1.6rem; }
+.stack-list li code, .col p code, .case-text code, .timeline-detail code, td code, .card-desc code, .quiz-option code { font-size: 0.88em; background: rgba(0,0,0,0.05); padding: 1px 6px; border-radius: 3px; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.chip { font-size: 0.9rem; font-weight: 600; color: var(--color-accent-2); border: 1px solid var(--color-rule); border-radius: 999px; padding: 4px 14px; background: var(--color-bg); }
+
+/* TWO_COL */
+.slide-two-col { padding: 44px 70px 36px; }
+.two-col-grid { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 0 40px; flex: 1; align-items: stretch; }
+.col { display: flex; flex-direction: column; gap: 16px; justify-content: center; align-items: center; text-align: center; }
+.col-label { display: inline-block; align-self: center; font: 700 0.85rem var(--font-label); text-transform: uppercase; letter-spacing: 0.15em; color: var(--color-accent-1); padding-bottom: 10px; border-bottom: 2px solid var(--color-accent-1); }
+.col p { font-size: 1.45rem; line-height: 1.45; max-width: 30ch; margin: 0; }
+.col ul.mini { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; text-align: left; }
+.col ul.mini li { font-size: 1.3rem; line-height: 1.35; padding-left: 22px; position: relative; margin: 0; }
+.col ul.mini li::before { content: '▸'; position: absolute; left: 0; color: var(--color-accent-1); }
+.col-divider { background: var(--color-rule); }
+
+/* TABLE */
+.slide-table { padding: 44px 60px 30px; }
+.table-wrapper { overflow: auto; border-radius: var(--radius-card); border: var(--border-rule); background: var(--color-surface); }
+table { width: 100%; border-collapse: collapse; font-size: 1.5rem; margin: 0; }
+thead tr { background: var(--color-ink); color: #fff; }
+th { padding: 12px 18px; text-align: left; font: 700 0.8rem var(--font-label); text-transform: uppercase; letter-spacing: 0.1em; color: #fff; }
+td { padding: 14px 20px; color: var(--color-text); border-bottom: var(--border-rule); line-height: 1.35; vertical-align: top; }
+tbody tr:nth-child(even) { background: rgba(0,0,0,0.025); }
+.table-wrapper--mid table { font-size: 1.32rem; }
+.table-wrapper--mid td { padding: 9px 18px; }
+.table-wrapper--dense table { font-size: 1.12rem; }
+.table-wrapper--dense td { padding: 5px 16px; }
+.table-wrapper--dense th { padding: 8px 16px; }
+
+/* CODE */
+.slide-code { padding: 36px 54px 28px; }
+.code-layout { display: grid; grid-template-columns: 1.55fr 1fr; gap: 32px; flex: 1; align-items: start; }
+.code-panel { border-radius: var(--radius-card); overflow: hidden; }
+.reveal .code-panel pre { margin: 0; width: 100%; font-size: 1.12rem; box-shadow: none; }
+.reveal .code-panel pre code { max-height: 560px; padding: 18px 20px; line-height: 1.45; }
+.code-sidebar { display: flex; flex-direction: column; gap: 18px; padding-top: 6px; }
+.code-desc { font-size: 1.3rem; line-height: 1.5; margin: 0; }
+.reveal ul.code-points { list-style: none; display: flex; flex-direction: column; gap: 12px; padding: 0; margin: 0; }
+.code-points li { font-size: 1.1rem; color: var(--color-text-muted); padding-left: 22px; position: relative; margin: 0; line-height: 1.4; }
+.code-points li::before { content: '▸'; position: absolute; left: 0; color: var(--color-accent-1); }
+
+/* QUOTE */
+.slide-quote { justify-content: center; align-items: center; text-align: center; padding: 60px 100px; }
+.quote-accent { width: 70px; height: 4px; background: var(--color-accent-1); margin-bottom: 36px; }
+blockquote.quote-text { font-family: var(--font-display); font-size: clamp(1.8rem, 3.6vw, 3rem); font-weight: 700; color: var(--color-text); line-height: 1.25; max-width: 24ch; margin: 0 0 30px; quotes: none; width: auto; box-shadow: none; background: none; padding: 0; text-align: center; }
+blockquote.quote-text.quote-text--long { font-size: clamp(1.4rem, 2.4vw, 2.1rem); max-width: 40ch; }
+.quote-attribution { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.quote-author { font: 700 0.95rem var(--font-label); color: var(--color-accent-1); text-transform: uppercase; letter-spacing: 0.1em; }
+.quote-context { font-size: 1.25rem; color: var(--color-text-muted); max-width: 40ch; line-height: 1.4; }
+
+/* GRID */
+.slide-grid { padding: 44px 60px 30px; }
+.grid-cards { display: grid; gap: 22px; flex: 1; align-content: center; }
+.grid-cards[data-count="2"] { grid-template-columns: repeat(2, 1fr); }
+.grid-cards[data-count="3"] { grid-template-columns: repeat(3, 1fr); }
+.grid-cards[data-count="4"] { grid-template-columns: repeat(2, 1fr); }
+.grid-cards[data-count="5"], .grid-cards[data-count="6"] { grid-template-columns: repeat(3, 1fr); }
+.grid-card { background: var(--color-surface); border: var(--border-rule); border-top: var(--border-accent); border-radius: var(--radius-card); padding: 24px 24px; display: flex; flex-direction: column; gap: 10px; }
+.card-icon { display: flex; align-items: center; }
+.card-icon svg { width: 30px; height: 30px; stroke: var(--color-accent-1); fill: none; }
+h3.card-title { font-family: var(--font-display); font-size: 1.45rem; font-weight: 700; margin: 0; color: var(--color-text); }
+.card-desc { font-size: 1.15rem; color: var(--color-text-muted); line-height: 1.45; margin: 0; }
+
+/* TIMELINE */
+.slide-timeline { padding: 44px 40px 30px; }
+.timeline-track { position: relative; display: flex; gap: 0; flex: 1; align-items: flex-start; padding-top: 44px; }
+.timeline-line { position: absolute; top: 28px; left: 0; right: 0; height: 2px; background: var(--color-rule); }
+.timeline-item { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 12px; }
+.timeline-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--color-accent-1); border: 3px solid var(--color-bg); box-shadow: 0 0 0 2px var(--color-accent-1); position: absolute; top: -7px; }
+.timeline-content { padding: 12px 12px 0; }
+.timeline-date { font: 700 0.8rem var(--font-label); text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-accent-1); }
+h3.timeline-event { font-family: var(--font-display); font-size: 2rem; font-weight: 700; line-height: 1.2; margin: 10px 0; color: var(--color-text); }
+.timeline-detail { font-size: 1.4rem; color: var(--color-text-muted); line-height: 1.4; margin: 0; }
+.slide-timeline--dense h3.timeline-event { font-size: 1.5rem; }
+.slide-timeline--dense .timeline-detail { font-size: 1.15rem; }
+.slide-timeline--dense .timeline-content { padding: 10px 6px 0; }
+
+/* CASE */
+.slide-case { padding: 44px 60px 30px; }
+.case-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; flex: 1; align-content: center; }
+.case-cards[data-count="3"] .case-card:last-child { grid-column: span 2; }
+.case-card { background: var(--color-surface); border-left: 4px solid var(--color-accent-2); border-radius: var(--radius-card); padding: 22px 28px; display: flex; flex-direction: column; gap: 12px; border-top: var(--border-rule); border-right: var(--border-rule); border-bottom: var(--border-rule); }
+.case-tag { display: inline-block; align-self: flex-start; font: 700 0.78rem var(--font-label); text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-accent-2); border: 1px solid var(--color-accent-2); border-radius: 999px; padding: 4px 12px; }
+.case-text { font-size: 1.3rem; line-height: 1.45; color: var(--color-text); margin: 0; }
+
+/* FIGURE: the animated figure is cropped to its plate and scaled so it fits next to the explanation */
+.slide-figure { padding: 22px 44px 16px; }
+.fig-head { display: flex; align-items: baseline; gap: 18px; margin-bottom: 10px; border-left: 4px solid var(--color-accent-1); padding-left: 16px; }
+.fig-tag { font: 700 0.85rem var(--font-label); letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-accent-1); white-space: nowrap; }
+h2.fig-title { font-family: var(--font-display); font-size: 1.9rem; font-weight: 700; margin: 0; line-height: 1.15; }
+.fig-body { display: grid; grid-template-columns: 860px 1fr; gap: 28px; flex: 1; min-height: 0; }
+.fig-frame { position: relative; width: 860px; height: 582px; overflow: hidden; border: var(--border-rule); border-radius: var(--radius-card); background: #fff; }
+.reveal .fig-frame iframe { max-width: none; max-height: none; position: absolute; left: -43px; top: -55px; width: 1100px; height: 1700px; border: 0; transform: scale(0.86); transform-origin: 0 0; }
+.fig-side { display: flex; flex-direction: column; gap: 14px; padding-top: 4px; }
+h3.fig-side-label { font: 700 0.85rem var(--font-label); text-transform: uppercase; letter-spacing: 0.14em; color: var(--color-accent-1); margin: 0; padding-bottom: 8px; border-bottom: 2px solid var(--color-accent-1); align-self: flex-start; }
+.reveal ul.fig-observe { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+.fig-observe li { font-size: 1.12rem; line-height: 1.38; padding-left: 20px; position: relative; margin: 0; }
+.fig-observe li::before { content: '▸'; position: absolute; left: 0; color: var(--color-accent-1); }
+.fig-row { display: flex; gap: 16px; align-items: stretch; }
+.fig-frame--wide.fig-frame--steps { width: 900px; flex: none; }
+.fig-steps { flex: 1; min-width: 0; height: 520px; display: flex; flex-direction: column; gap: 8px; }
+.fig-steps-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; scroll-behavior: smooth; flex: 1; }
+.reveal .fig-steps-list li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; margin: 0; padding: 8px 8px 8px 10px; border-left: 4px solid transparent; opacity: 0.5; transition: opacity .25s, background .25s, border-color .25s; font-size: 0.92rem; line-height: 1.32; }
+.fig-steps-list li b { font: 700 0.9rem var(--font-label); color: var(--color-text-muted); }
+.fig-steps-list li strong { display: block; font-size: 1rem; line-height: 1.2; }
+.reveal .fig-steps-list li p { margin: 3px 0 0; font-size: 0.88rem; line-height: 1.32; }
+.fig-steps-list li[data-state="run"] { opacity: 1; border-color: var(--color-accent-1); background: rgba(var(--color-accent-1-rgb), 0.08); }
+.fig-steps-list li[data-state="run"] b { color: var(--color-accent-1); }
+.fig-steps-list li[data-state="done"] { opacity: 0.8; border-color: var(--color-text-muted); }
+.fig-tabs[hidden], .fig-choices[hidden] { display: none; }
+.fig-choices { display: flex; flex-wrap: wrap; gap: 6px; }
+.reveal .fig-chip { font: 600 0.85rem var(--font-label); padding: 3px 10px; border-radius: 999px; border: 1px solid var(--color-text-muted); background: transparent; color: var(--color-text); cursor: pointer; }
+.reveal .fig-chip[aria-pressed="true"] { border-color: var(--color-accent-1); color: var(--color-accent-1); background: rgba(var(--color-accent-1-rgb), 0.08); }
+.fig-tabs { display: flex; flex-direction: column; gap: 6px; }
+.reveal .fig-tab { font: 600 0.88rem var(--font-body); text-align: left; padding: 5px 12px; border-radius: 8px; border: 1px solid var(--color-text-muted); background: transparent; color: var(--color-text); cursor: pointer; }
+.reveal .fig-tab[aria-pressed="true"] { border-color: var(--color-accent-1); color: var(--color-accent-1); background: rgba(var(--color-accent-1-rgb), 0.08); }
+.fig-ctl { display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 6px; }
+.reveal .fig-btn { font: 600 0.95rem var(--font-body); padding: 5px 18px; border-radius: 999px; border: 1px solid var(--color-text-muted); background: transparent; color: var(--color-text); cursor: pointer; }
+.reveal .fig-btn:hover { border-color: var(--color-accent-1); color: var(--color-accent-1); }
+.fig-toggle { font-size: 0.95rem; display: flex; gap: 6px; align-items: center; cursor: pointer; }
+.fig-wide { display: flex; flex-direction: column; gap: 12px; flex: 1; min-height: 0; }
+.fig-frame--wide { width: 1192px; height: 520px; }
+.reveal .fig-frame--wide iframe { left: 0; top: -58px; width: 1100px; height: 1700px; transform: scale(1.083); transform-origin: 0 0; }
+.reveal ul.fig-observe--row { flex-direction: row; gap: 22px; }
+.fig-observe--row li { flex: 1; font-size: 1.02rem; }
+.reveal a.fig-open--head { margin: 0 0 0 auto; align-self: center; }
+.fig-how { font-size: 0.95rem; color: var(--color-text-muted); margin: 0; line-height: 1.4; }
+.reveal a.fig-open { margin-top: auto; font: 700 0.85rem var(--font-label); text-decoration: none; border: 1px solid var(--color-accent-1); border-radius: 999px; padding: 6px 14px; align-self: flex-start; }
+
+/* QUIZ CHECK */
+.quiz-check { display: flex; flex-direction: column; gap: 16px; padding: 22px 28px; background: var(--color-surface); border: var(--border-rule); border-radius: var(--radius-card); }
+.quiz-question { font-size: 1.4rem; line-height: 1.4; color: var(--color-text); margin: 0; font-weight: 600; }
+.quiz-options { display: flex; flex-direction: column; gap: 10px; }
+.quiz-option { display: flex; align-items: center; gap: 14px; padding: 11px 16px; border-radius: var(--radius-card); border: var(--border-rule); cursor: pointer; transition: var(--transition); }
+.quiz-option:hover { border-color: var(--color-accent-1); }
+.quiz-option input { width: 20px; height: 20px; accent-color: var(--color-accent-1); cursor: pointer; flex-shrink: 0; }
+.quiz-option span { font-size: 1.2rem; color: var(--color-text); line-height: 1.35; }
+.quiz-check.is-validated .quiz-option, .quiz-check.is-validated .quiz-option input { cursor: default; }
+.quiz-option.is-correct { border-color: #2e7d32; background: rgba(46,125,50,0.08); }
+.quiz-option.is-incorrect { border-color: var(--color-accent-1); background: rgba(var(--color-accent-1-rgb), 0.08); }
+.quiz-option.is-missed { border-color: #2e7d32; border-style: dashed; background: rgba(46,125,50,0.04); }
+.quiz-validate-btn { align-self: flex-start; font-family: var(--font-body); font-size: 1.05rem; font-weight: 600; padding: 9px 26px; border-radius: var(--radius-card); border: var(--border-rule); background: var(--color-accent-1); color: #fff; cursor: pointer; }
+.quiz-validate-btn:hover { opacity: 0.85; }
+.quiz-feedback { display: none; padding-top: 14px; border-top: 1px dashed var(--color-rule); }
+.quiz-check.is-validated .quiz-feedback { display: block; }
+.quiz-explanation { font-size: 1.15rem; line-height: 1.5; color: var(--color-text-muted); margin: 0; }
+
+/* ACTIVITY + TIMER */
+.activity-foot { margin-top: auto; padding-top: 18px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.activity-product { margin: 0; font-size: 1.2rem; line-height: 1.35; max-width: 640px; }
+.activity-product span { display: block; font: 700 0.78rem var(--font-label); text-transform: uppercase; letter-spacing: 0.12em; color: var(--color-accent-1); margin-bottom: 4px; }
+.timer { display: flex; align-items: center; gap: 10px; }
+.timer-display { font-family: var(--font-mono); font-size: 2.2rem; font-weight: 700; letter-spacing: 0.05em; color: var(--color-accent-1); min-width: 150px; text-align: center; padding: 4px 18px; border-radius: var(--radius-card); border: 2px solid var(--color-rule); background: var(--color-surface); }
+.timer.is-warning .timer-display { border-color: var(--color-accent-1); }
+.timer.is-done .timer-display { background: var(--color-accent-1); color: #fff; border-color: var(--color-accent-1); }
+.timer-btn { font-family: var(--font-body); font-size: 1rem; font-weight: 600; padding: 8px 18px; border-radius: var(--radius-card); border: var(--border-rule); background: var(--color-accent-1); color: #fff; cursor: pointer; }
+.timer-btn:hover { opacity: 0.85; }
+.timer-btn--ghost { background: transparent; color: var(--color-text-muted); }
+.timer-btn--step { font-family: var(--font-mono); font-weight: 700; padding: 8px 12px; background: transparent; color: var(--color-accent-1); }
+</style>
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+<section><div class="slide-layout slide-hero" data-layout="hero"><div class="hero-eyebrow">IF-6100 · II Ciclo 2026 · Sesión B</div><h1 class="hero-title">Trabajar con agentes</h1><p class="hero-subtitle">Del chat al agente, el harness y Spec-Driven Development</p><div class="hero-meta">MSc. Leonardo Camacho Navarro · UCR Sede del Atlántico · Recinto de Paraíso</div></div><aside class="notes">Sesión B (~110 min): repaso, Actos 5 a 7 y cierre.</aside></section>
+<section><div class="slide-layout slide-stack" data-layout="stack"><h2 class="slide-title">Dónde quedamos</h2><ul class="stack-list"><li class="fragment"><strong>SaludoBot</strong>: RF-01 «determinar si un mensaje es un saludo», derivado de CU-01</li><li class="fragment">El <strong>set de 12 mensajes</strong> (9 con etiqueta y 3 casos límite; datos sugeridos) es el criterio de aceptación y se reusa hoy</li><li class="fragment">Del modelo sabemos: tokens, embeddings, predicción del siguiente token, contexto, alucinación y no determinismo</li><li class="fragment">Elegir un modelo es una decisión que se <strong>mide</strong> con el set</li></ul><p class="ask">Si el modelo solo predice texto, ¿qué hace cuando necesita consultar una matrícula?</p></div><aside class="notes">Acto de repaso, 10 min.</aside></section>
+<section><div class="slide-layout slide-hero" data-layout="hero"><div class="hero-watermark" aria-hidden="true">5</div><div class="hero-eyebrow">Acto 5</div><h1 class="hero-title">Del chat al agente</h1><p class="hero-ask">El modelo solo predice texto, ¿cómo hace cosas?</p></div><aside class="notes">28 min.</aside></section>
+<section><div class="slide-layout slide-two-col" data-layout="two-col"><h2 class="slide-title">Chat: el modelo solo produce texto</h2><div class="two-col-grid"><div class="col col-left"><div class="col-label">Qué hace</div><p>Recibe el contexto y devuelve texto. Nada más.</p></div><div class="col-divider"></div><div class="col col-right"><div class="col-label">Qué no hace</div><p>No guarda memoria propia. Si el producto «recuerda», es porque reenvía el historial.</p></div></div><p class="ask">¿Qué le falta a un chat para consultar una matrícula?</p></div></section>
+<section><div class="slide-layout slide-stack" data-layout="stack"><h2 class="slide-title">Antes de seguir: ¿qué es un harness?</h2><ul class="stack-list"><li class="fragment">El <strong>harness</strong> es el programa que rodea al modelo y hace todo lo que el modelo no puede hacer por sí solo</li><li class="fragment">Arma el contexto que se le envía, ejecuta las herramientas que el modelo pide y devuelve los resultados</li><li class="fragment">Analogía: el modelo es el motor; el harness es el vehículo que lo conecta con el mundo</li><li class="fragment">Lo verá en detalle en el Acto 6. Por ahora basta con una idea: <strong>el modelo pide, el harness actúa</strong></li></ul></div><aside class="notes">Definición mínima antes del tool call. Ejemplos de harness: Claude Code, GitHub Copilot, Cursor. En el Acto 6 se amplía (permisos, memoria, compactación).</aside></section>
+<section><div class="slide-layout slide-code" data-layout="code"><h2 class="slide-title">Tool call: el modelo pide, no ejecuta</h2><div class="code-layout"><div class="code-panel"><pre><code class="language-json" data-trim data-noescape>{
+  "tool": "consultar_matricula",
+  "arguments": { "carnet": "B12345" }
+}</code></pre></div><div class="code-sidebar"><p class="code-desc">El modelo escribe una solicitud estructurada. Quien la ejecuta y devuelve el resultado al contexto es el <strong>harness</strong>.</p><ul class="code-points"><li class="fragment">El modelo decide qué herramienta y con qué argumentos</li><li class="fragment">El harness ejecuta y agrega el resultado al contexto</li><li class="fragment">Después el modelo vuelve a ser llamado con ese resultado</li></ul></div></div></div><aside class="notes">CU-02 «Consultar matrícula». Unificar el término harness desde aquí.</aside></section>
+<section><div class="slide-layout slide-stack" data-layout="stack"><h2 class="slide-title">Agente: un modelo que dirige un bucle</h2><ul class="stack-list"><li class="fragment">Un <strong>agente</strong> es un LLM que dirige dinámicamente sus pasos y herramientas: decide, actúa, observa y repite. Lo ejecuta un <strong>harness</strong> (Acto 6: agente = modelo + harness)</li><li class="fragment">Un <strong>workflow</strong>, en cambio, sigue pasos fijados por el código</li><li class="fragment">El bucle termina cuando el objetivo se cumple o cuando se alcanza un tope</li></ul></div><aside class="notes">Fuente: Anthropic, «Building effective agents».</aside></section>
+<section><div class="slide-layout slide-figure" data-layout="figure"><div class="fig-head"><span class="fig-tag">Figura 5</span><h2 class="fig-title">La herramienta y el bucle</h2><a class="fig-open fig-open--head" href="../figuras/poc-herramienta-light.html" target="_blank" rel="noopener">Abrir completa ↗</a></div><div class="fig-wide fig-wide--steps"><div class="fig-row"><div class="fig-frame fig-frame--wide fig-frame--steps"><iframe data-src="../figuras/poc-herramienta-light.html?r=33#view=scene" title="Figura 5: La herramienta y el bucle" scrolling="no" loading="lazy" style="left:-265.0px;top:-223.6px;transform:scale(1.3)"></iframe></div><aside class="fig-steps" aria-label="Pasos de la figura"><div class="fig-tabs" role="group" aria-label="Escenarios" data-fig-tabs hidden></div><div class="fig-choices" role="group" aria-label="Ejemplos" data-fig-choices hidden></div><h3 class="fig-side-label">Pasos</h3><ol class="fig-steps-list" data-fig-steps aria-live="polite"></ol></aside></div><div class="fig-ctl" role="group" aria-label="Controles de la figura"><button type="button" class="fig-btn" data-fig-ctl="run">▶ Repetir</button><label class="fig-toggle"><input type="checkbox" data-fig-ctl="step"> Paso a paso</label><button type="button" class="fig-btn" data-fig-ctl="next">Siguiente ›</button></div></div></div><aside class="notes">Figura 5. Recorrer las tres pestañas: chat, agente y bucle con tope.</aside></section>
+<section><div class="slide-layout slide-stack" data-layout="stack"><h2 class="slide-title">RAG: recuperar por cercanía</h2><ul class="stack-list"><li class="fragment"><strong>RAG</strong> significa <em>Retrieval-Augmented Generation</em>: generación aumentada por recuperación. Antes de responder, se buscan documentos relevantes y se agregan al contexto del modelo</li><li class="fragment">Se recuperan los documentos más cercanos a la pregunta</li><li class="fragment">Es la <strong>misma operación del detector de saludos</strong>: cercanía entre embeddings</li><li class="fragment">Permite responder con documentos propios (programa, reglas, SRS) y citar la fuente</li><li class="fragment">Si la recuperación falla, responde con lo equivocado, y puede alucinar igual</li></ul></div><aside class="notes">Cerrar el círculo con el Acto 2.</aside></section>
+<section><div class="slide-layout slide-code" data-layout="code"><h2 class="slide-title">Instrucciones persistentes del proyecto</h2><div class="code-layout"><div class="code-panel"><pre><code class="language-markdown" data-trim data-noescape># Project rules
+- Backend: Java 21, Spring Boot 3, Maven.
+  Frontend: React 19, TypeScript strict, no `any`.
+- Layers: controller -&gt; service -&gt; domain.
+  No business logic in controllers.
+- Tests: JUnit 5 + Mockito; every acceptance
+  criterion must map to a test.
+- Code in English; docs in Spanish.</code></pre></div><div class="code-sidebar"><p class="code-desc"><code>CLAUDE.md</code> o <code>AGENTS.md</code> se cargan siempre al contexto, junto al system prompt.</p><ul class="code-points"><li class="fragment">Fijan stack, convenciones y reglas una sola vez</li><li class="fragment">Pueden ignorarse y consumen contexto si crecen</li><li class="fragment">En SDD serán la <code>constitution</code></li></ul></div></div></div><aside class="notes">5.5. Preparar la constitution de SDD.</aside></section>
+<section><div class="slide-layout slide-code" data-layout="code"><h2 class="slide-title">Skill: instrucciones empaquetadas, cargadas bajo demanda</h2><div class="code-layout"><div class="code-panel"><pre><code class="language-markdown" data-trim data-noescape>---
+name: evaluar-saludobot
+description: Evalúa un clasificador de saludos
+  contra el set de prueba y reporta aciertos
+---
+1. Cargar src/test/resources/greetings.csv
+2. Ejecutar el clasificador sobre cada mensaje
+3. Reportar aciertos x/9 y los casos límite aparte</code></pre></div><div class="code-sidebar"><p class="code-desc">Ejemplo sugerido de skill: una carpeta con <code>SKILL.md</code> (<code>name</code> y <code>description</code>) más recursos opcionales.</p><ul class="code-points"><li class="fragment">Al inicio solo se carga la descripción</li><li class="fragment">El cuerpo completo entra cuando la tarea lo pide</li><li class="fragment">No cambia los pesos del modelo; una descripción pobre no se activa</li></ul></div></div></div><aside class="notes">Analogía: manual en el estante. Skills publicadas como estándar abierto (agentskills.io); confirmado en Anthropic Engineering.</aside></section>
+<section><div class="slide-layout slide-figure" data-layout="figure"><div class="fig-head"><span class="fig-tag">Figura 7</span><h2 class="fig-title">El prompt y la skill</h2><a class="fig-open fig-open--head" href="../figuras/poc-skill-light.html" target="_blank" rel="noopener">Abrir completa ↗</a></div><div class="fig-wide fig-wide--steps"><div class="fig-row"><div class="fig-frame fig-frame--wide fig-frame--steps"><iframe data-src="../figuras/poc-skill-light.html?r=33#view=scene" title="Figura 7: El prompt y la skill" scrolling="no" loading="lazy" style="left:-248.5px;top:-218.4px;transform:scale(1.27)"></iframe></div><aside class="fig-steps" aria-label="Pasos de la figura"><div class="fig-tabs" role="group" aria-label="Escenarios" data-fig-tabs hidden></div><div class="fig-choices" role="group" aria-label="Ejemplos" data-fig-choices hidden></div><h3 class="fig-side-label">Pasos</h3><ol class="fig-steps-list" data-fig-steps aria-live="polite"></ol></aside></div><div class="fig-ctl" role="group" aria-label="Controles de la figura"><button type="button" class="fig-btn" data-fig-ctl="run">▶ Repetir</button><label class="fig-toggle"><input type="checkbox" data-fig-ctl="step"> Paso a paso</label><button type="button" class="fig-btn" data-fig-ctl="next">Siguiente ›</button></div></div></div><aside class="notes">Figura 7. La figura abre en «Prompt corto y detallado»: empezar ahí para comparar con el prompt largo escrito a mano y pasar luego a «El prompt guardado como skill». Al final, «Varias skills».</aside></section>
+<section><div class="slide-layout slide-stack" data-layout="stack"><h2 class="slide-title">MCP: un protocolo abierto para conectar herramientas</h2><ul class="stack-list"><li class="fragment"><strong>Model Context Protocol</strong>: estándar abierto para conectar aplicaciones de IA con herramientas y datos externos</li><li class="fragment">Analogía: el USB-C de la IA, un solo conector en vez de una integración a medida por herramienta</li><li class="fragment">No es «modelos personalizados»: es un protocolo</li><li class="fragment">Amplía la superficie de ataque: se revisa cada servidor antes de conectarlo</li></ul></div><aside class="notes">Confirmado en modelcontextprotocol.io. Donado a la Agentic AI Foundation (Linux Foundation) el 9 de diciembre de 2025.</aside></section>
+<section><div class="slide-layout slide-table" data-layout="table"><h2 class="slide-title">Tool, skill, MCP y agente</h2><div class="table-wrapper"><table><thead><tr><th>Concepto</th><th>Qué es</th><th>Qué no es</th></tr></thead><tbody><tr class="fragment"><td>Herramienta</td><td>Una función que el modelo puede pedir ejecutar</td><td>Algo que el modelo ejecute por sí mismo</td></tr><tr class="fragment"><td>Skill</td><td>Instrucciones y recursos cargados al contexto bajo demanda</td><td>Un cambio en el modelo ni una herramienta nueva</td></tr><tr class="fragment"><td>MCP</td><td>Un protocolo para conectar herramientas y datos</td><td>Un modelo ni una skill</td></tr><tr class="fragment"><td>Agente</td><td>Un modelo que decide en bucle qué herramienta usar, dentro de un harness que la ejecuta</td><td>Un chat con más texto ni un workflow fijo</td></tr></tbody></table></div></div><aside class="notes">Fijar vocabulario con preguntas al grupo.</aside></section>
+<section><div class="slide-layout slide-stack" data-layout="stack"><h2 class="slide-title">Verificación · Acto 5</h2><div class="quiz-check"><p class="quiz-question">¿Qué distingue a un agente de un chat?</p><div class="quiz-options"><label class="quiz-option"><input type="radio" name="quiz-1" data-correct="false"><span>El agente usa un modelo mucho más grande que el del chat.</span></label><label class="quiz-option"><input type="radio" name="quiz-1" data-correct="false"><span>El agente guarda sus propios pesos actualizados en cada tarea que realiza.</span></label><label class="quiz-option"><input type="radio" name="quiz-1" data-correct="false"><span>El agente nunca necesita un contexto para decidir qué hacer a continuación.</span></label><label class="quiz-option"><input type="radio" name="quiz-1" data-correct="true"><span>El modelo decide en bucle qué herramienta usar y observa los resultados.</span></label></div><button class="quiz-validate-btn" type="button">Validar</button><div class="quiz-feedback"><p class="quiz-explanation">El agente actúa en un bucle de decidir, ejecutar y observar. Una skill, en cambio, son instrucciones y recursos que se cargan al contexto bajo demanda.</p></div></div></div></section>
+<section><div class="slide-layout slide-hero" data-layout="hero"><div class="hero-watermark" aria-hidden="true">6</div><div class="hero-eyebrow">Acto 6</div><h1 class="hero-title">El harness</h1><p class="hero-ask">¿Quién controla al agente y qué contexto recibe?</p></div><aside class="notes">22 min.</aside></section>
+<section><div class="slide-layout slide-timeline" data-layout="timeline"><h2 class="slide-title">Del autocompletado al agente</h2><div class="timeline-track"><div class="timeline-line"></div><div class="timeline-item fragment"><div class="timeline-dot"></div><div class="timeline-content"><span class="timeline-date">Fase 1</span><h3 class="timeline-event">Autocompletado</h3><p class="timeline-detail">Sugiere la siguiente línea</p></div></div><div class="timeline-item fragment"><div class="timeline-dot"></div><div class="timeline-content"><span class="timeline-date">Fase 2</span><h3 class="timeline-event">Chat con código</h3><p class="timeline-detail">Responde preguntas sobre el código</p></div></div><div class="timeline-item fragment"><div class="timeline-dot"></div><div class="timeline-content"><span class="timeline-date">Fase 3</span><h3 class="timeline-event">Agente</h3><p class="timeline-detail">Lee, edita, ejecuta y verifica</p></div></div><div class="timeline-item fragment"><div class="timeline-dot"></div><div class="timeline-content"><span class="timeline-date">Fase 4</span><h3 class="timeline-event">Varios agentes</h3><p class="timeline-detail">Reparten el trabajo en paralelo</p></div></div></div></div><aside class="notes">Contexto histórico mínimo. La historia completa de la automatización queda como deck aparte.</aside></section>
+<section><div class="slide-layout slide-two-col" data-layout="two-col"><h2 class="slide-title">Agente = modelo + harness</h2><div class="two-col-grid"><div class="col col-left"><div class="col-label">Modelo</div><p>Predice texto: la respuesta o la solicitud de herramienta.</p></div><div class="col-divider"></div><div class="col col-right"><div class="col-label">Harness</div><ul class="mini"><li>Arma el contexto</li><li>Expone las herramientas</li><li>Ejecuta los tool calls</li><li>Aplica permisos</li><li>Gestiona el contexto y carga skills</li></ul></div></div><p class="ask">No confundir con el «test harness» del Módulo 7.</p></div><aside class="notes">Analogía: motor y vehículo.</aside></section>
+<section><div class="slide-layout slide-timeline slide-timeline--dense" data-layout="timeline slide-timeline--dense"><h2 class="slide-title">Un turno de punta a punta</h2><div class="timeline-track"><div class="timeline-line"></div><div class="timeline-item fragment"><div class="timeline-dot"></div><div class="timeline-content"><span class="timeline-date">1</span><h3 class="timeline-event">Contexto</h3><p class="timeline-detail">System prompt, CLAUDE.md e historial</p></div></div><div class="timeline-item fragment"><div class="timeline-dot"></div><div class="timeline-content"><span class="timeline-date">2</span><h3 class="timeline-event">Pedido</h3><p class="timeline-detail">El usuario pide una tarea</p></div></div><div class="timeline-item fragment"><div class="timeline-dot"></div><div class="timeline-content"><span class="timeline-date">3</span><h3 class="timeline-event">Tool call</h3><p class="timeline-detail">El modelo pide una herramienta</p></div></div><div class="timeline-item fragment"><div class="timeline-dot"></div><div class="timeline-content"><span class="timeline-date">4</span><h3 class="timeline-event">Permiso</h3><p class="timeline-detail">El harness pide aprobación si hace falta</p></div></div><div class="timeline-item fragment"><div class="timeline-dot"></div><div class="timeline-content"><span class="timeline-date">5</span><h3 class="timeline-event">Resultado</h3><p class="timeline-detail">Se ejecuta y vuelve al contexto</p></div></div><div class="timeline-item fragment"><div class="timeline-dot"></div><div class="timeline-content"><span class="timeline-date">6</span><h3 class="timeline-event">Nueva llamada</h3><p class="timeline-detail">El modelo continúa o responde</p></div></div></div></div><aside class="notes">Demo en vivo del bucle real.</aside></section>
+<section><div class="slide-layout slide-stack" data-layout="stack"><h2 class="slide-title">Permisos, aprobaciones y seguridad</h2><ul class="stack-list"><li class="fragment">El harness decide qué puede ejecutar el agente y cuándo pide aprobación</li><li class="fragment"><strong>Prompt injection</strong>: el contenido que el agente lee puede traer instrucciones maliciosas</li><li class="fragment">Mínimo privilegio: aprobación humana para acciones destructivas</li><li class="fragment">Los secretos se mantienen fuera del contexto</li></ul><p class="ask">¿Qué permisos le daría al agente que consulta matrículas?</p></div></section>
+<section><div class="slide-layout slide-stack" data-layout="stack"><h2 class="slide-title">Compactación y memoria externa</h2><ul class="stack-list"><li class="fragment">Cuando el contexto se llena, el harness lo <strong>compacta</strong>: resume y descarta detalle</li><li class="fragment">Los archivos en disco (specs, notas, decisiones) funcionan como memoria externa</li><li class="fragment">Por eso importan los artefactos: sobreviven a la compactación y a la sesión</li></ul></div></section>
+<section><div class="slide-layout slide-figure" data-layout="figure"><div class="fig-head"><span class="fig-tag">Figura 4</span><h2 class="fig-title">Reducir el contexto (Figura 4, otra vez)</h2><a class="fig-open fig-open--head" href="../figuras/poc-contexto-light.html" target="_blank" rel="noopener">Abrir completa ↗</a></div><div class="fig-wide fig-wide--steps"><div class="fig-row"><div class="fig-frame fig-frame--wide fig-frame--steps"><iframe data-src="../figuras/poc-contexto-light.html?r=33#view=scene" title="Figura 4: Reducir el contexto (Figura 4, otra vez)" scrolling="no" loading="lazy" style="left:-375.0px;top:-277.5px;transform:scale(1.5)"></iframe></div><aside class="fig-steps" aria-label="Pasos de la figura"><div class="fig-tabs" role="group" aria-label="Escenarios" data-fig-tabs hidden></div><div class="fig-choices" role="group" aria-label="Ejemplos" data-fig-choices hidden></div><h3 class="fig-side-label">Pasos</h3><ol class="fig-steps-list" data-fig-steps aria-live="polite"></ol></aside></div><div class="fig-ctl" role="group" aria-label="Controles de la figura"><button type="button" class="fig-btn" data-fig-ctl="run">▶ Repetir</button><label class="fig-toggle"><input type="checkbox" data-fig-ctl="step"> Paso a paso</label><button type="button" class="fig-btn" data-fig-ctl="next">Siguiente ›</button></div></div></div><aside class="notes">Volvemos a la Figura 4 (la de la sesión A): ahora para ver la compactación. Abrir la pestaña «Reducir el contexto».</aside></section>
+<section><div class="slide-layout slide-stack" data-layout="stack"><h2 class="slide-title">Subagentes: contextos limpios</h2><ul class="stack-list"><li class="fragment">Un subagente recibe una tarea, trabaja en <strong>su propio contexto</strong> y devuelve solo un resumen</li><li class="fragment">El contexto principal no se llena con los pasos intermedios</li><li class="fragment">Varios subagentes pueden trabajar en paralelo</li></ul></div></section>
+<section><div class="slide-layout slide-figure" data-layout="figure"><div class="fig-head"><span class="fig-tag">Figura 6</span><h2 class="fig-title">El subagente</h2><a class="fig-open fig-open--head" href="../figuras/poc-subagente-light.html" target="_blank" rel="noopener">Abrir completa ↗</a></div><div class="fig-wide fig-wide--steps"><div class="fig-row"><div class="fig-frame fig-frame--wide fig-frame--steps"><iframe data-src="../figuras/poc-subagente-light.html?r=33#view=scene" title="Figura 6: El subagente" scrolling="no" loading="lazy" style="left:-237.5px;top:-276.3px;transform:scale(1.25)"></iframe></div><aside class="fig-steps" aria-label="Pasos de la figura"><div class="fig-tabs" role="group" aria-label="Escenarios" data-fig-tabs hidden></div><div class="fig-choices" role="group" aria-label="Ejemplos" data-fig-choices hidden></div><h3 class="fig-side-label">Pasos</h3><ol class="fig-steps-list" data-fig-steps aria-live="polite"></ol></aside></div><div class="fig-ctl" role="group" aria-label="Controles de la figura"><button type="button" class="fig-btn" data-fig-ctl="run">▶ Repetir</button><label class="fig-toggle"><input type="checkbox" data-fig-ctl="step"> Paso a paso</label><button type="button" class="fig-btn" data-fig-ctl="next">Siguiente ›</button></div></div></div><aside class="notes">Figura 6.</aside></section>
+<section><div class="slide-layout slide-figure" data-layout="figure"><div class="fig-head"><span class="fig-tag">Figura 8a</span><h2 class="fig-title">Una skill, un solo agente</h2><a class="fig-open fig-open--head" href="../figuras/poc-skill-agente-light.html" target="_blank" rel="noopener">Abrir completa ↗</a></div><div class="fig-wide fig-wide--steps"><div class="fig-row"><div class="fig-frame fig-frame--wide fig-frame--steps"><iframe data-src="../figuras/poc-skill-agente-light.html?r=33#view=scene" title="Figura 8a: Una skill, un solo agente" scrolling="no" loading="lazy" style="left:-265.0px;top:-236.6px;transform:scale(1.3)"></iframe></div><aside class="fig-steps" aria-label="Pasos de la figura"><div class="fig-tabs" role="group" aria-label="Escenarios" data-fig-tabs hidden></div><div class="fig-choices" role="group" aria-label="Ejemplos" data-fig-choices hidden></div><h3 class="fig-side-label">Pasos</h3><ol class="fig-steps-list" data-fig-steps aria-live="polite"></ol></aside></div><div class="fig-ctl" role="group" aria-label="Controles de la figura"><button type="button" class="fig-btn" data-fig-ctl="run">▶ Repetir</button><label class="fig-toggle"><input type="checkbox" data-fig-ctl="step"> Paso a paso</label><button type="button" class="fig-btn" data-fig-ctl="next">Siguiente ›</button></div></div></div><aside class="notes">Figura 8a, en vista ampliada (solo la escena); para ver los pasos, abrir la figura completa (botón superior derecho) y usar «Paso a paso». La skill ya se cargó como en la Figura 7. Los nombres de archivo son ejemplo.</aside></section>
+<section><div class="slide-layout slide-figure" data-layout="figure"><div class="fig-head"><span class="fig-tag">Figura 8b</span><h2 class="fig-title">Una skill que reparte el trabajo</h2><a class="fig-open fig-open--head" href="../figuras/poc-skill-subagentes-light.html" target="_blank" rel="noopener">Abrir completa ↗</a></div><div class="fig-wide fig-wide--steps"><div class="fig-row"><div class="fig-frame fig-frame--wide fig-frame--steps"><iframe data-src="../figuras/poc-skill-subagentes-light.html?r=33#view=scene" title="Figura 8b: Una skill que reparte el trabajo" scrolling="no" loading="lazy" style="left:-265.0px;top:-236.6px;transform:scale(1.3)"></iframe></div><aside class="fig-steps" aria-label="Pasos de la figura"><div class="fig-tabs" role="group" aria-label="Escenarios" data-fig-tabs hidden></div><div class="fig-choices" role="group" aria-label="Ejemplos" data-fig-choices hidden></div><h3 class="fig-side-label">Pasos</h3><ol class="fig-steps-list" data-fig-steps aria-live="polite"></ol></aside></div><div class="fig-ctl" role="group" aria-label="Controles de la figura"><button type="button" class="fig-btn" data-fig-ctl="run">▶ Repetir</button><label class="fig-toggle"><input type="checkbox" data-fig-ctl="step"> Paso a paso</label><button type="button" class="fig-btn" data-fig-ctl="next">Siguiente ›</button></div></div></div><aside class="notes">Figura 8b, en vista ampliada (solo la escena); para ver los pasos, abrir la figura completa (botón superior derecho) y usar «Paso a paso». Compare con la 8a: mismo trabajo, distinto contexto. Puente hacia SDD: las tareas se reparten entre agentes.</aside></section>
+<section><div class="slide-layout slide-case" data-layout="case"><h2 class="slide-title">Mismo modelo, distinto producto</h2><div class="case-cards" data-count="3"><div class="case-card fragment"><span class="case-tag">Claude Code</span><p class="case-text">Un agente en terminal con permisos, skills y subagentes.</p></div><div class="case-card fragment"><span class="case-tag">GitHub Copilot</span><p class="case-text">Un agente integrado en el editor y en GitHub.</p></div><div class="case-card fragment"><span class="case-tag">Cursor</span><p class="case-text">Un editor construido alrededor de un agente.</p></div></div><p class="foot">Cada producto trae su propio harness.</p></div><aside class="notes">El mismo modelo rinde distinto según el harness.</aside></section>
+<section><div class="slide-layout slide-stack" data-layout="stack"><h2 class="slide-title">Verificación · Acto 6</h2><div class="quiz-check"><p class="quiz-question">El mismo modelo rinde distinto en dos productos. ¿Por qué?</p><div class="quiz-options"><label class="quiz-option"><input type="radio" name="quiz-2" data-correct="true"><span>Difieren en el harness: instrucciones, herramientas, contexto y permisos.</span></label><label class="quiz-option"><input type="radio" name="quiz-2" data-correct="false"><span>Porque uno de los productos usa pesos ocultos distintos del modelo.</span></label><label class="quiz-option"><input type="radio" name="quiz-2" data-correct="false"><span>Porque el modelo cambia de idioma según el producto en que se use.</span></label><label class="quiz-option"><input type="radio" name="quiz-2" data-correct="false"><span>Porque el harness no influye en el resultado que produce el modelo.</span></label></div><button class="quiz-validate-btn" type="button">Validar</button><div class="quiz-feedback"><p class="quiz-explanation">El harness define qué ve el modelo y qué puede hacer, así que la calidad depende de él tanto como del modelo.</p></div></div></div></section>
+<section><div class="slide-layout slide-hero" data-layout="hero"><div class="hero-watermark" aria-hidden="true">7</div><div class="hero-eyebrow">Acto 7</div><h1 class="hero-title">Spec-Driven Development</h1><p class="hero-ask">¿Cómo evitamos el vibe coding?</p></div><aside class="notes">40 min.</aside></section>
+<section><div class="slide-layout slide-stack" data-layout="stack"><h2 class="slide-title">Vibe coding: pedir sin spec</h2><ul class="stack-list"><li class="fragment">Pedimos «haz un detector de saludos» sin más detalle</li><li class="fragment">Cada agente asume algo distinto: el idioma, el umbral, qué es un saludo</li><li class="fragment">Demo: dos corridas con SaludoBot, y se compara el resultado con el set</li></ul></div><aside class="notes">Demo en vivo, solo del profesor: dos corridas, dos resultados distintos. Plan B: tenga las dos salidas pregeneradas (captura). Si falta tiempo, esta demo es opcional.</aside></section>
+<section><div class="slide-layout slide-case" data-layout="case"><h2 class="slide-title">El caso de los tres sprints</h2><div class="case-cards" data-count="4"><div class="case-card fragment"><span class="case-tag">PM</span><p class="case-text">«Preferencias de notificación» eran toggles por canal.</p></div><div class="case-card fragment"><span class="case-tag">Backend</span><p class="case-text">Construyó un único switch de encendido y apagado.</p></div><div class="case-card fragment"><span class="case-tag">Frontend</span><p class="case-text">Asumió integración con las notificaciones del sistema operativo.</p></div><div class="case-card fragment"><span class="case-tag">Diseño</span><p class="case-text">Mockeó algo que exigía reescribir medio servicio de usuarios.</p></div></div><p class="foot">Nadie se equivocó: todos decidieron con información incompleta. Un agente <strong>amplifica</strong> esa ambigüedad.</p></div><aside class="notes">Conectar con requerimientos (Módulo 3). Fuente: SDD intro.</aside></section>
+<section><div class="slide-layout slide-quote" data-layout="quote"><div class="quote-accent"></div><blockquote class="quote-text">La spec es la fuente de verdad del <em>qué</em>; el <em>cómo</em> se regenera.</blockquote><div class="quote-attribution"><span class="quote-author">Spec-Driven Development</span><span class="quote-context">No es documentación que se escribe y se olvida: es un artefacto vivo que guía al agente.</span></div></div></section>
+<section><div class="slide-layout slide-two-col" data-layout="two-col"><h2 class="slide-title">SDD no es Waterfall</h2><div class="two-col-grid"><div class="col col-left"><div class="col-label">Waterfall</div><ul class="mini"><li>Plan exhaustivo antes de codificar</li><li>Fases secuenciales rígidas</li><li>El cambio es costoso</li></ul></div><div class="col-divider"></div><div class="col col-right"><div class="col-label">SDD</div><ul class="mini"><li>Spec mínima y suficiente</li><li>Iterativo: spec, plan, tasks, código</li><li>La spec evoluciona y el plan se regenera</li></ul></div></div><p class="ask">Si se planifica en exceso sin validar, SDD puede caer en un neo-waterfall.</p></div><aside class="notes">Lugar de SDD respecto de TDD y BDD.</aside></section>
+<section><div class="slide-layout slide-table" data-layout="table"><h2 class="slide-title">De lo que ya sabe a la spec</h2><div class="table-wrapper table-wrapper--mid"><table><thead><tr><th>En el curso</th><th>En SDD</th></tr></thead><tbody><tr><td>Caso de uso: actor, objetivo, precondiciones</td><td><code>spec.md</code>: contexto y usuario</td></tr><tr><td>Flujo principal y alternos</td><td>Escenarios (Dado / Cuando / Entonces)</td></tr><tr><td>Reglas de negocio</td><td>Reglas y restricciones</td></tr><tr><td>Requerimientos suplementarios</td><td>Criterios no funcionales</td></tr><tr><td>Diseño (Módulo 5)</td><td><code>plan.md</code></td></tr><tr><td>Backlog</td><td><code>tasks.md</code></td></tr><tr><td>Pruebas (Módulo 7)</td><td>Criterios de aceptación verificables</td></tr></tbody></table></div></div><aside class="notes">Puente con los Módulos 3, 5 y 7.</aside></section>
+<section><div class="slide-layout slide-timeline" data-layout="timeline"><h2 class="slide-title">El flujo, con un checkpoint humano en cada paso</h2><div class="timeline-track"><div class="timeline-line"></div><div class="timeline-item fragment"><div class="timeline-dot"></div><div class="timeline-content"><span class="timeline-date">Paso 1</span><h3 class="timeline-event">Instrucciones</h3><p class="timeline-detail">Stack, convenciones y reglas del proyecto</p></div></div><div class="timeline-item fragment"><div class="timeline-dot"></div><div class="timeline-content"><span class="timeline-date">Paso 2</span><h3 class="timeline-event">Specify</h3><p class="timeline-detail">Qué y por qué, con criterios de aceptación</p></div></div><div class="timeline-item fragment"><div class="timeline-dot"></div><div class="timeline-content"><span class="timeline-date">Paso 3</span><h3 class="timeline-event">Plan</h3><p class="timeline-detail">Cómo, dentro de las reglas del proyecto</p></div></div><div class="timeline-item fragment"><div class="timeline-dot"></div><div class="timeline-content"><span class="timeline-date">Paso 4</span><h3 class="timeline-event">Tasks</h3><p class="timeline-detail">Tareas pequeñas, ordenadas y probables</p></div></div><div class="timeline-item fragment"><div class="timeline-dot"></div><div class="timeline-content"><span class="timeline-date">Paso 5</span><h3 class="timeline-event">Implement</h3><p class="timeline-detail">El agente ejecuta; el humano revisa el diff</p></div></div></div><p class="foot">Entre pasos también se resuelven ambigüedades y se revisa la consistencia entre spec, plan y tasks.</p></div><aside class="notes">El humano aprueba cada paso. Herramientas como Spec Kit organizan estos pasos; aquí interesa el método, no la herramienta.</aside></section>
+<section><div class="slide-layout slide-figure" data-layout="figure"><div class="fig-head"><span class="fig-tag">Figura 9</span><h2 class="fig-title">Un flujo SDD: del pedido al disco</h2><a class="fig-open fig-open--head" href="../figuras/poc-sdd-light.html" target="_blank" rel="noopener">Abrir completa ↗</a></div><div class="fig-wide fig-wide--steps"><div class="fig-row"><div class="fig-frame fig-frame--wide fig-frame--steps"><iframe data-src="../figuras/poc-sdd-light.html?r=33#view=scene" title="Figura 9: Un flujo SDD: del pedido al disco" scrolling="no" loading="lazy" style="left:-263.7px;top:-218.4px;transform:scale(1.3)"></iframe></div><aside class="fig-steps" aria-label="Pasos de la figura"><div class="fig-tabs" role="group" aria-label="Escenarios" data-fig-tabs hidden></div><div class="fig-choices" role="group" aria-label="Ejemplos" data-fig-choices hidden></div><h3 class="fig-side-label">Pasos</h3><ol class="fig-steps-list" data-fig-steps aria-live="polite"></ol></aside></div><div class="fig-ctl" role="group" aria-label="Controles de la figura"><button type="button" class="fig-btn" data-fig-ctl="run">▶ Repetir</button><label class="fig-toggle"><input type="checkbox" data-fig-ctl="step"> Paso a paso</label><button type="button" class="fig-btn" data-fig-ctl="next">Siguiente ›</button></div></div></div><aside class="notes">Figura 9. Camino feliz de un flujo SDD, con los nombres de archivo de herramientas como Spec Kit (solo como ejemplo). Presentar la sesión nueva por paso como práctica recomendada, no como obligación de la herramienta. Los archivos del disco son la fuente de verdad.</aside></section>
+<section><div class="slide-layout slide-table" data-layout="table"><h2 class="slide-title">Flujo liviano o herramienta dedicada</h2><div class="table-wrapper"><table><thead><tr><th>Criterio</th><th>Flujo liviano</th><th>Herramienta dedicada (ej. Spec Kit)</th></tr></thead><tbody><tr><td>Dependencias</td><td>Solo el agente</td><td>Instalación y configuración propias</td></tr><tr><td>Estabilidad</td><td>Alta: archivos Markdown</td><td>Menor: comandos y opciones cambian entre versiones</td></tr><tr><td>Aprendizaje</td><td>Se ve el método</td><td>Parte del tiempo va a la herramienta</td></tr><tr><td>Alineación con el curso</td><td>Directa con CU, RF y diseño</td><td>Genérica; plantillas en inglés</td></tr></tbody></table></div><p class="foot">El método es el mismo; la herramienta es opcional.</p></div><aside class="notes">Recomendación de la propuesta v2, sección 6.2: flujo liviano en clase; una herramienta dedicada como opción para el proyecto. Spec Kit se menciona solo como ejemplo de herramienta.</aside></section>
+<section><div class="slide-layout slide-code" data-layout="code"><h2 class="slide-title">Ejemplo: spec.md de RF-01</h2><div class="code-layout"><div class="code-panel"><pre><code class="language-markdown" data-trim data-noescape># RF-01 Detect greeting (from CU-01)
+## Scenarios
+- Given "Q onda", When it is classified,
+  Then isGreeting is true.
+- Given "necesito la matricula", When it is
+  classified, Then isGreeting is false.
+## Acceptance set
+12 messages (9 labeled + 3 edge cases) in
+src/test/resources/greetings.csv
+## Non-functional
+- Under 300 ms with the baseline classifier.
+- No personal data sent to external services.
+## Open questions
+- Does "Q" alone count as a greeting?</code></pre></div><div class="code-sidebar"><p class="code-desc">La spec fija el qué y trae el set de 12 (datos sugeridos) como criterio de aceptación.</p><ul class="code-points"><li class="fragment">La pregunta abierta sobre «Q» sale en la fase de especificación, no en producción</li><li class="fragment">Referencias CU-01 y RF-01 dan trazabilidad</li></ul></div></div></div><aside class="notes">Ejemplo realista, sección 6.3 de la propuesta.</aside></section>
+<section><div class="slide-layout slide-code" data-layout="code"><h2 class="slide-title">Ejemplo: plan.md y tasks.md</h2><div class="code-layout"><div class="code-panel"><pre><code class="language-markdown" data-trim data-noescape># plan.md
+- Interface GreetingClassifier with two
+  implementations: KeywordGreetingClassifier
+  and EmbeddingGreetingClassifier (Strategy).
+- POST /api/v1/messages/classify
+  -&gt; { "isGreeting": boolean, "confidence": number }
+- React component GreetingChecker (strict types).
+
+# tasks.md
+1. Create ClassificationResult + GreetingClassifier.
+2. KeywordGreetingClassifier + parameterized test.
+3. Expose the endpoint + controller test (Mockito).
+4. EmbeddingGreetingClassifier behind the interface.
+5. GreetingChecker in React/TS + component test.</code></pre></div><div class="code-sidebar"><p class="code-desc">El plan aplica Strategy e inversión de dependencias (Módulo 5); las tareas son pequeñas y probables.</p><ul class="code-points"><li class="fragment">Las tareas 2 y 4 comparten el mismo set</li><li class="fragment">Cambiar de clasificador no toca el controlador</li></ul></div></div></div><aside class="notes">Un solo archivo tasks.md, no una carpeta de tareas.</aside></section>
+<section><div class="slide-layout slide-code" data-layout="code"><h2 class="slide-title">Una herramienta dedicada genera esta estructura</h2><div class="code-layout"><div class="code-panel"><pre><code class="language-text" data-trim data-noescape>specs/NNN-name/
+  spec.md
+  plan.md
+  research.md
+  data-model.md
+  contracts/
+  quickstart.md
+  tasks.md</code></pre></div><div class="code-sidebar"><p class="code-desc">Ejemplo: así organiza sus archivos una herramienta como Spec Kit. Los mismos artefactos se pueden escribir a mano en el flujo liviano.</p><ul class="code-points"><li class="fragment">Un archivo por artefacto, versionado junto al código</li><li class="fragment"><code>tasks.md</code> es un solo archivo</li><li class="fragment">Los comandos y opciones cambian entre versiones: se consulta la documentación oficial</li></ul></div></div></div><aside class="notes">Ejemplo de estructura, sin instalación ni versiones. Si hay tiempo, mostrar el repositorio de la herramienta; no es necesario que el grupo la conozca.</aside></section>
+<section><div class="slide-layout slide-code" data-layout="code"><h2 class="slide-title">Qué verifica a qué</h2><div class="code-layout"><div class="code-panel"><pre><code class="language-java" data-trim data-noescape>@ParameterizedTest
+@CsvFileSource(resources = "/greetings.csv",
+               numLinesToSkip = 1)
+void classifiesGreeting(String message, boolean expected) {
+    var result = classifier.classify(message);
+    assertEquals(expected, result.isGreeting());
+}</code></pre></div><div class="code-sidebar"><p class="code-desc">Cada criterio de aceptación se convierte en una prueba. El set de 12 (datos sugeridos) alimenta una prueba parametrizada de JUnit 5.</p><ul class="code-points"><li class="fragment">Las pruebas verifican lo que la spec promete</li><li class="fragment">La revisión humana verifica lo que la spec no cubre</li><li class="fragment">Si cambia el requerimiento, se cambia la spec y se regenera el plan</li></ul></div></div></div><aside class="notes">Cierre de calidad. Mockito aparece en la prueba del controlador.</aside></section>
+<section><div class="slide-layout slide-two-col" data-layout="two-col"><h2 class="slide-title">Cuándo usar SDD y cuándo no</h2><div class="two-col-grid"><div class="col col-left"><div class="col-label">Conviene</div><ul class="mini"><li>Funcionalidades con varios actores</li><li>Trabajo en equipo o con agentes</li><li>Cuando el qué debe quedar verificable</li></ul></div><div class="col-divider"></div><div class="col col-right"><div class="col-label">No conviene</div><ul class="mini"><li>Un bug menor</li><li>Un experimento descartable</li><li>Cuando la spec costaría más que el cambio</li></ul></div></div><p class="ask">La spec también puede estar mal: el humano la revisa.</p></div><aside class="notes">Fortalezas, límites y criterio.</aside></section>
+<section><div class="slide-layout slide-table" data-layout="table"><h2 class="slide-title">Cierre del hilo: SDD corre sobre un harness</h2><div class="table-wrapper"><table><thead><tr><th>En SDD</th><th>En el harness</th></tr></thead><tbody><tr class="fragment"><td><code>constitution</code></td><td>Instrucciones persistentes (<code>CLAUDE.md</code>)</td></tr><tr class="fragment"><td>Comandos del flujo</td><td>Prompts y skills reutilizables</td></tr><tr class="fragment"><td>Checkpoints humanos</td><td>Aprobaciones y permisos</td></tr><tr class="fragment"><td>Specs en disco</td><td>Memoria externa</td></tr></tbody></table></div><p class="foot">SDD es un método; sus archivos y comandos se ejecutan sobre un harness.</p></div><aside class="notes">Ata los Actos 5, 6 y 7.</aside></section>
+<section><div class="slide-layout slide-stack" data-layout="stack"><h2 class="slide-title">Verificación · Acto 7</h2><div class="quiz-check"><p class="quiz-question">¿Cuál es la función principal de la spec en SDD?</p><div class="quiz-options"><label class="quiz-option"><input type="radio" name="quiz-3" data-correct="false"><span>Documentar el sistema una vez que ya está terminado y en producción.</span></label><label class="quiz-option"><input type="radio" name="quiz-3" data-correct="false"><span>Reemplazar las pruebas automáticas, que dejan de ser necesarias.</span></label><label class="quiz-option"><input type="radio" name="quiz-3" data-correct="true"><span>Ser un artefacto verificable que fija el qué y los criterios de aceptación.</span></label><label class="quiz-option"><input type="radio" name="quiz-3" data-correct="false"><span>Describir cada línea de código que se va a escribir, una por una.</span></label></div><button class="quiz-validate-btn" type="button">Validar</button><div class="quiz-feedback"><p class="quiz-explanation">La spec fija el qué y los criterios verificables; el cómo se regenera. Las pruebas siguen siendo necesarias para verificar. Pregunta extra: ¿qué artefacto del curso equivale a la constitution? Las instrucciones persistentes del proyecto.</p></div></div></div></section>
+<section><div class="slide-layout slide-table" data-layout="table"><h2 class="slide-title">Alcances y límites</h2><div class="table-wrapper table-wrapper--mid"><table><thead><tr><th>Límite</th><th>Qué hacer</th></tr></thead><tbody><tr><td>Alucinación</td><td>Dar el material en el contexto y verificar con ejecución (tests, compilación)</td></tr><tr><td>Ventana de contexto</td><td>Entregar solo lo relevante y guardar decisiones en archivos</td></tr><tr><td>No determinismo</td><td>No depender de una sola salida; fijar criterios de aceptación</td></tr><tr><td>Sesgo</td><td>Probar con ejemplos locales, como el «Q» costarricense</td></tr><tr><td>Seguridad</td><td>Mínimo privilegio, aprobación humana y revisión de servidores MCP</td></tr><tr><td>Privacidad</td><td>No enviar datos personales a servicios no autorizados; leer los términos</td></tr><tr><td>Costo y latencia</td><td>Medir tokens y usar el modelo más pequeño que pase el set</td></tr><tr><td>Criterio humano</td><td>Revisar cada diff; declarar el uso de IA en las entregas</td></tr></tbody></table></div></div><aside class="notes">Sección 5 de la propuesta v2.</aside></section>
+<section><div class="slide-layout slide-stack" data-layout="stack"><h2 class="slide-title">Referencias</h2><ul class="stack-list"><li class="fragment">Anthropic, «Building effective agents»: workflows y agentes</li><li class="fragment">Anthropic Engineering, «Equipping agents for the real world with Agent Skills»</li><li class="fragment">modelcontextprotocol.io: introducción a MCP</li><li class="fragment">agentskills.io: el estándar abierto de skills</li><li class="fragment">Spec Kit (ejemplo de herramienta SDD): github.com/github/spec-kit</li></ul></div><aside class="notes">Confirmar las fuentes antes de proyectar.</aside></section>
+<section><div class="slide-layout slide-hero" data-layout="hero"><div class="hero-eyebrow">Conclusión</div><h1 class="hero-title">El humano conserva el criterio</h1><p class="hero-subtitle">Un modelo predice, un harness orquesta y una spec fija el qué. Quien firma el resultado es el ingeniero.</p><p class="hero-ask">¿Qué parte de su próximo trabajo del curso delegaría a un agente y cuál criterio conservaría usted?</p><div class="hero-meta">IF-6100 · II Ciclo 2026 · UCR Sede del Atlántico</div></div><aside class="notes">Cierre de las dos sesiones.</aside></section>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    slideNumber: 'c/t',
+    transition: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'none' : 'fade',
+    transitionSpeed: 'default',
+    center: false,
+    width: 1280,
+    height: 720,
+    margin: 0,
+    minScale: 0.2,
+    maxScale: 2.0,
+    plugins: [ RevealHighlight, RevealNotes ]
+  });
+
+document.addEventListener('click', function (e) {
+  var btn = e.target.closest('.quiz-validate-btn');
+  if (!btn) return;
+  var quiz = btn.closest('.quiz-check');
+  if (!quiz) return;
+  var options = quiz.querySelectorAll('.quiz-option');
+  if (quiz.classList.contains('is-validated')) {
+    quiz.classList.remove('is-validated');
+    options.forEach(function (opt) {
+      opt.classList.remove('is-correct', 'is-incorrect', 'is-missed');
+      var input = opt.querySelector('input');
+      if (input) { input.checked = false; input.disabled = false; }
+    });
+    btn.textContent = 'Validar';
+    return;
+  }
+  options.forEach(function (opt) {
+    var input = opt.querySelector('input');
+    if (!input) return;
+    var isCorrect = input.dataset.correct === 'true';
+    if (input.checked && isCorrect) opt.classList.add('is-correct');
+    else if (input.checked && !isCorrect) opt.classList.add('is-incorrect');
+    else if (!input.checked && isCorrect) opt.classList.add('is-missed');
+    input.disabled = true;
+  });
+  quiz.classList.add('is-validated');
+  btn.textContent = 'Reintentar';
+});
+(function () {
+  var state = {};
+  var fmt = function (t) { return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
+  var get = function (el) {
+    if (!state[el.id]) state[el.id] = { base: Number(el.dataset.secs), left: Number(el.dataset.secs), timer: null };
+    return state[el.id];
+  };
+  var paint = function (el) {
+    var s = get(el);
+    el.querySelector('.timer-display').textContent = fmt(Math.max(s.left, 0));
+    el.classList.toggle('is-warning', s.left <= 60 && s.left > 0);
+    el.classList.toggle('is-done', s.left <= 0);
+  };
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.timer-btn');
+    if (!btn) return;
+    var el = btn.closest('.timer');
+    var s = get(el);
+    var action = btn.dataset.timer;
+    if (action === 'step') {
+      s.left = Math.min(5999, Math.max(0, s.left + Number(btn.dataset.delta)));
+      s.base = s.left;
+    } else if (action === 'reset') {
+      clearInterval(s.timer); s.timer = null; s.left = s.base;
+      el.querySelector('[data-timer="toggle"]').textContent = 'Iniciar';
+    } else if (action === 'toggle') {
+      if (s.timer) { clearInterval(s.timer); s.timer = null; btn.textContent = 'Continuar'; }
+      else if (s.left > 0) {
+        s.timer = setInterval(function () {
+          s.left -= 1; paint(el);
+          if (s.left <= 0) { clearInterval(s.timer); s.timer = null; btn.textContent = 'Iniciar'; }
+        }, 1000);
+        btn.textContent = 'Pausar';
+      }
+    }
+    paint(el);
+  });
+})();
+(function () {
+  // steps panel beside a figure: the figure reports its steps by postMessage and the deck draws them and relays the controls
+  var wrapOf = function (source) {
+    var frames = document.querySelectorAll('.fig-frame--steps iframe');
+    for (var i = 0; i < frames.length; i++) if (frames[i].contentWindow === source) return frames[i].closest('.fig-wide');
+    return null;
+  };
+  window.addEventListener('message', function (e) {
+    var d = e.data;
+    if (!d || d.fig !== 'steps') return;
+    var wrap = wrapOf(e.source);
+    if (!wrap) return;
+    var list = wrap.querySelector('[data-fig-steps]');
+    var tabsBox = wrap.querySelector('[data-fig-tabs]');
+    if (d.tabs && d.tabs.length > 1 && tabsBox) {
+      tabsBox.textContent = '';
+      d.tabs.forEach(function (tb) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'fig-tab'; b.dataset.figTab = tb[0]; b.textContent = tb[1];
+        tabsBox.appendChild(b);
+      });
+      tabsBox.hidden = false;
+    }
+    var choicesBox = wrap.querySelector('[data-fig-choices]');
+    if (d.choices && choicesBox) {
+      choicesBox.textContent = '';
+      d.choices.forEach(function (w) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'fig-chip'; b.dataset.figChoice = w; b.textContent = w;
+        choicesBox.appendChild(b);
+      });
+      choicesBox.hidden = false;
+    }
+    if (d.choice !== undefined && choicesBox) choicesBox.querySelectorAll('.fig-chip').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.figChoice === d.choice)); });
+    if (d.tab && tabsBox) tabsBox.querySelectorAll('.fig-tab').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.figTab === d.tab)); });
+    if (d.list) {
+      list.textContent = '';
+      d.list.forEach(function (st, i) {
+        var li = document.createElement('li'), num = document.createElement('b'), box = document.createElement('div'), t = document.createElement('strong'), p = document.createElement('p');
+        li.dataset.step = String(i + 1); li.dataset.state = 'pending';
+        num.textContent = String(i + 1); t.textContent = st.title; p.textContent = st.text;
+        box.appendChild(t); box.appendChild(p); li.appendChild(num); li.appendChild(box); list.appendChild(li);
+      });
+    }
+    if (typeof d.n === 'number') {
+      var current = null;
+      list.querySelectorAll('li').forEach(function (li) {
+        var k = Number(li.dataset.step);
+        li.dataset.state = k < d.n ? 'done' : k === d.n ? 'run' : 'pending';
+        if (k === d.n) current = li;
+      });
+      if (current) list.scrollTop = Math.max(0, current.offsetTop - list.offsetTop - 6);
+    }
+  });
+  document.addEventListener('click', function (e) {
+    var choice = e.target.closest('[data-fig-choice]');
+    if (choice) {
+      var cw = choice.closest('.fig-wide'), cf = cw && cw.querySelector('iframe');
+      if (cf && cf.contentWindow) cf.contentWindow.postMessage({ fig: 'ctl', act: 'choice', key: choice.dataset.figChoice }, '*');
+      choice.blur();
+      return;
+    }
+    var tab = e.target.closest('[data-fig-tab]');
+    if (tab) {
+      var tw = tab.closest('.fig-wide'), tf = tw && tw.querySelector('iframe');
+      if (tf && tf.contentWindow) tf.contentWindow.postMessage({ fig: 'ctl', act: 'tab', key: tab.dataset.figTab }, '*');
+      tab.blur();
+      return;
+    }
+    var ctl = e.target.closest('[data-fig-ctl]');
+    if (!ctl) return;
+    var wrap = ctl.closest('.fig-wide'), frame = wrap && wrap.querySelector('iframe');
+    if (!frame || !frame.contentWindow) return;
+    frame.contentWindow.postMessage({ fig: 'ctl', act: ctl.dataset.figCtl, on: ctl.checked }, '*');
+    if (ctl.tagName === 'BUTTON') ctl.blur();
+  });
+})();
+
+</script>
+</body>
+</html>
